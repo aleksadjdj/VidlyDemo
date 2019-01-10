@@ -10,6 +10,18 @@ namespace VidlyDemo.Controllers
 {
     public class MoviesController : Controller
     {
+
+        private readonly List<Movie> _movies = new List<Movie>
+            {
+               new Movie { Name = "Shrek", ID = 1},
+               new Movie { Name = "Wall-E", ID = 2},
+            };
+
+        public ActionResult Index()
+        {
+            return View(_movies);
+        }
+
         // GET: Movies/Random
         public ActionResult Random()
         {
