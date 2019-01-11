@@ -5,21 +5,35 @@ using System.Web;
 using System.Web.Mvc;
 using VidlyDemo.Models;
 using VidlyDemo.ViewModels;
+using System.Data.Entity; // <<<<<<<< .Include(m => m.GenreType)
+
 
 namespace VidlyDemo.Controllers
 {
     public class MoviesController : Controller
     {
+        private ApplicationDbContext _context;
+        public MoviesController()
+        {
+            _context = new ApplicationDbContext();
+        }
 
-        private readonly List<Movie> _movies = new List<Movie>
-            {
-               new Movie { Name = "Shrek", ID = 1},
-               new Movie { Name = "Wall-E", ID = 2},
-            };
+        protected override void Dispose(bool disposing)
+        {
+            _context.Dispose();
+        }
+
 
         public ActionResult Index()
         {
-            return View(_movies);
+            var movies = _context.Movies.Include(m => m.GenreType).ToList();
+            return View(movies);
+        }
+
+        public ActionResult Details(int id)
+        {
+            var movie = _context.Movies.Single(m => m.Id == id);
+            return View(movie);
         }
 
         // GET: Movies/Random
@@ -43,7 +57,18 @@ namespace VidlyDemo.Controllers
 
         public ActionResult Edit(int id)
         {
-            return Content("id=" + id);
+            var movie = _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movie == null)
+                return HttpNotFound();
+
+            var viewModel = new GenreMovieViewModel
+            {
+                Movie = movie,
+                GenreTypes = _context.GenreTypes
+            };
+
+            return View(viewModel);
         }
 
         [Route("Movies/Released/{year}/{month}")]
@@ -52,6 +77,39 @@ namespace VidlyDemo.Controllers
             return Content(year + "/" + month);
         }
 
+        public ActionResult New()
+        {
+            var genreTypes = _context.GenreTypes.ToList();
+            var viewModel = new GenreMovieViewModel
+            {
+                GenreTypes = genreTypes
+            };
+            return View("New", viewModel);
+        }
 
+        [HttpPost]
+        public ActionResult Save(Movie movie)
+        {
+            if (movie.Id == 0)
+            {
+                movie.AddedDate = DateTime.Now;
+                _context.Movies.Add(movie);
+                
+            }
+            else
+            {
+                var movieInDb = _context.Movies.Single(m => m.Id == movie.Id);
+
+                movieInDb.Name = movie.Name;
+                movieInDb.ReleaseDate = movie.ReleaseDate;
+                movieInDb.GenreTypeId = movie.GenreTypeId;
+                movieInDb.StockNumber = movie.StockNumber;
+                movieInDb.AddedDate = DateTime.Now;
+            }
+
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Movies");
+        }
     }
 }
