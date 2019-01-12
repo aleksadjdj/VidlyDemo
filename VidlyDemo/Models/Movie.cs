@@ -29,6 +29,7 @@ namespace VidlyDemo.Models
 
         [Required]
         [Display(Name = "Number in Stock")]
+        [Range(1, 20)]
         public int StockNumber { get; set; }
     }
 }
