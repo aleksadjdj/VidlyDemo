@@ -62,13 +62,15 @@ namespace VidlyDemo.Controllers
             if (movie == null)
                 return HttpNotFound();
 
-            var viewModel = new GenreMovieViewModel
+            var viewModel = new MovieFormViewModel
             {
                 Movie = movie,
-                GenreTypes = _context.GenreTypes
+                GenreTypes = _context.GenreTypes,
+                Id = movie.Id
             };
 
-            return View(viewModel);
+
+            return View("MovieForm", viewModel);
         }
 
         [Route("Movies/Released/{year}/{month}")]
@@ -80,11 +82,11 @@ namespace VidlyDemo.Controllers
         public ActionResult New()
         {
             var genreTypes = _context.GenreTypes.ToList();
-            var viewModel = new GenreMovieViewModel
+            var viewModel = new MovieFormViewModel
             {
                 GenreTypes = genreTypes
             };
-            return View("New", viewModel);
+            return View("MovieForm", viewModel);
         }
 
         [HttpPost]
@@ -94,7 +96,6 @@ namespace VidlyDemo.Controllers
             {
                 movie.AddedDate = DateTime.Now;
                 _context.Movies.Add(movie);
-                
             }
             else
             {
